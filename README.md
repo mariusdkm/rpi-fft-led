@@ -1,4 +1,4 @@
-# rpi-fft-light
+# rpi-fft-led
 This is a Raspberry Pi Projekt for the German Jugend Forscht competition.
 This Code controlls WS2812B LEDs using the SPI port of the Raspberry Pi by calculating a Fast Fourier Transform.
 The code I wrote makes use of the GPU_FFT library (http://www.aholme.co.uk/GPU_FFT/Main.htm) and 
