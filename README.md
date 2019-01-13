@@ -19,9 +19,12 @@ https://github.com/penfold42/stuff/blob/master/ws2812_spi.c
 https://www.linuxjournal.com/article/6735
 https://ubuntuforums.org/showthread.php?t=968690
 
+
+For the spi interface Copyright (c) 2016 penfold42
+
+For the GPU_FFT Copyright (c) 2014 Andrew Holme.
+
 Copyright (c) 2018 mariusdkm
-for the spi interface Copyright (c) 2016 penfold42
-for the GPU_FFT Copyright (c) 2014 Andrew Holme.
 
 This program is free software; you can redistribute it and/or modify 
 it under the terms of the GNU General Public License as published by
