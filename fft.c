@@ -15,6 +15,7 @@
 // for reading wav files:
 #include <sndfile.h>
 
+//GPU_FFT librarys
 #include "mailbox.h"
 #include "gpu_fft.h"
 
@@ -22,11 +23,12 @@
 #include "led_modes.h"
 
 #define ALSA_PCM_NEW_HW_PARAMS_API
-
+//ALSA library
 #include <alsa/asoundlib.h>
 
 
 int main(int argc, char *argv[]) {
+	//ALSA audio device init-------------------
 	int err;
 	int16_t *buffer;
 	int rc;
@@ -67,13 +69,11 @@ int main(int argc, char *argv[]) {
 	
 	/* 44100 bits/second sampling rate (CD quality) */
 	val = 44100;
-	snd_pcm_hw_params_set_rate_near(handle, params,
-									&val, &dir);
+	snd_pcm_hw_params_set_rate_near(handle, params, &val, &dir);
 	
 	/* Set period size to 32 frames. */
 	frames = 1024;
-	snd_pcm_hw_params_set_period_size_near(handle,
-										   params, &frames, &dir);
+	snd_pcm_hw_params_set_period_size_near(handle, params, &frames, &dir);
 	
 	/* Write the parameters to the driver */
 	rc = snd_pcm_hw_params(handle, params);
@@ -99,8 +99,9 @@ int main(int argc, char *argv[]) {
 	bool optimize = false;
 	
 	int num_bins,current_bin,current_led;
-	float max,avg,amplitude,max_amplitude,amplitude_factor,freq_scaling;
+	float max,avg,amplitude,max_amplitude = 0,amplitude_factor,freq_scaling;
 	uint32_t spi_speed = 4000000; //=250ns
+	
 	if (argc > 2)
 	{
 		optimize = true;
@@ -109,9 +110,8 @@ int main(int argc, char *argv[]) {
 	
 	 //Open the WAV file.
 	 if (argc < 2 || argc > 3)
-	 pabort("Call me with the name of the sound file as argument (and optionally a second argument to optimize display for this sound file)");
-	 
-	 
+		 pabort("Call me with the name of the sound file as argument (and optionally a second argument to optimize display for this sound file)");
+	
 	 
 	 sf_info.format = 0;
 	 sf = sf_open(argv[1],SFM_READ,&sf_info);
@@ -147,7 +147,6 @@ int main(int argc, char *argv[]) {
 	int color;
 	
 	//FFT Variables
-	//	float * InData, * OutData;
 	float * OutData;
 	int jobs=1, c, mb = mbox_open(), NLOG2 = 10;
 	double r,g,b;
@@ -158,48 +157,31 @@ int main(int argc, char *argv[]) {
 	unsigned long N = 1 << NLOG2;
 	float FloatN = (float) N;
 	float HalfN  = FloatN / 2.0;
-	FILE *fin;
-	fin = fopen("/home/pi/rpi-fft-light/audio/1to22khz.data", "r"); // open input file
 	unsigned int rate = 44100;
-	//	char buff[255];
+	
 	// a structure encoding the rgb value for all of the leds in the strip
 	struct led_data ledstrip_data[num_leds];
 	//init spi_led.c
 	fd = init_spi_led(spi_speed);
 	
-	// -------------------------------------------------------------------
-	// Perform FFT -------------------------------------------------------
 	
-	//	InData = malloc(N * sizeof(float));
 	OutData = malloc(N/2 * sizeof(float));
-	
-	
-	//	printf("======================\n");
-	//	printf("Reading input data\n");
-	
-	
-	
-	
-	//	printf("======================\n");
 	ret = gpu_fft_prepare(mb, NLOG2, GPU_FFT_FWD, jobs, &fft);
-	// printf("Return: %d\n", ret);
-	// printf("Calculating FFT\n");
 	bool logarithmic = false;
-	//low for how many freq are used for the base, and high how many are used for the upper part
+	//low for how many freq are used for the base, and high how many are used for the unused high parts
 	int low, high, brightness;
 	low = 300;
-	high = 10000;
+	high = 3000;
 	brightness = 100;
 	int freq_per_bin = rate/N;
 	int low_bins, high_bins;
-	//(rate/(N/2)) = how many freq are in one bin
 	
 	//get how many bin are in the low part
 	low_bins = round(low/freq_per_bin);
 	
 	//get how many bin are in the hight part
 	high_bins = round((rate/2 - high)/freq_per_bin);
-	max_amplitude = 0;
+	
 	for(int e=0; e<sf_info.frames/N;e++){
 		base = fft->in;
 		
@@ -209,16 +191,17 @@ int main(int argc, char *argv[]) {
 					err, snd_strerror(err));
 			exit(1);
 		}*/
-		//printf("buffer_frames= %d\n", buffer_frames);
+		
+		//Write the Data into the FFT Buffer
 		for(i=0;i<N;i++){
-			//	    fgets(buff, 255, (FILE*)fin);
 			base[i].re = buf[i+e*N]/32768.0;
-			buffer[i] = buf[i+e*N];
-			//base[i].re = buffer[i]/32768.0;
 			base[i].im = 0.0;
 			
-			
+			//Buffer for the playing the sound
+			buffer[i] = buf[i+e*N];
 		}
+		
+		//play the buffer
 		rc = snd_pcm_writei(handle, buffer , frames);
 		if (rc == -EPIPE) {
 			/* EPIPE means underrun */
@@ -232,11 +215,13 @@ int main(int argc, char *argv[]) {
 			fprintf(stderr,
 					"short write, write %d frames\n", rc);
 		}
+		
+		//Perform FFT
 		gpu_fft_execute(fft);
+		
 		base = fft->out;
 		
-		 
-		
+		//read FFT output
 		for(i=0;i<(N/2);i++)
 		{
 			// record the amplitude of this frequency bin
@@ -245,33 +230,22 @@ int main(int argc, char *argv[]) {
 			if (optimize && OutData[i] > max_amplitude && i > low_bins)
 				max_amplitude = OutData[i];
 			//printf("Loop %d Data point OutData[%d] = %f\n",e,(int) (rate/N)*i,OutData[i]);
-			//	      fprintf(fout, "%d\t%f\n", i*((sf_info.samplerate/2)/HalfN), sqrt(OutData[i]) / 512.0 );
 		}
 		
 		
 		if (max_amplitude)
 		{
 			amplitude_factor = 1.0/max_amplitude;
-			//	      printf("amplitude factor = %f\n",amplitude_factor);
 		}
 		else
 			amplitude_factor = 1.0;
 		
-		
-		
-		// ---------------------------------------------------------------------
-		// ---------------------------------------------------------------------
-		// How many fft bins do we have?  HalfN
-		// How many leds do we have? num_leds
-		// Therefore, how many fft bins need to be averaged for each led?
-		// num_bins = (N/2)/num_leds
-
-		
-		//printf("low_bins  = %d, high_bins = %d\n", low_bins, high_bins);
-		mode3(N, OutData, low_bins, high_bins,  brightness, amplitude_factor, logarithmic, &ledstrip_data);
+		//Calculate the LEDs using one of the modes in led_modes
+		mode1(N, OutData, low_bins, high_bins,  brightness, amplitude_factor, logarithmic, &ledstrip_data);
+		//write the LED data to the LEDs
 		write_spi_buffer(ledstrip_data, fd);
 	}
+	//Close everything
 	gpu_fft_release(fft);
-	fclose(fin);
 	return close_spi_led(fd);
 }
