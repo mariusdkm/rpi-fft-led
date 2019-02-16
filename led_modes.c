@@ -235,7 +235,7 @@ void mode4(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 		color = round((max * (1.0/(mid_bins))) * 200.0+450);
 	else
 		color = 400;
-	printf("Max bin = %d Color=%d\n",max,  color);
+	//printf("Max bin = %d Color=%d\n",max,  color);
 	
 	//copy the data from the previus time to the next led
 	for(current_led=num_leds-1;current_led>0;current_led--){
