@@ -4,13 +4,28 @@ This Code controlls WS2812B LEDs using the SPI port of the Raspberry Pi by calcu
 The code I wrote makes use of the GPU_FFT library (http://www.aholme.co.uk/GPU_FFT/Main.htm) and 
 code to steer the WS2812b LEDs (https://github.com/penfold42/stuff/blob/master/ws2812_spi.c).
 
-fft.c is the main file and requires 1 or 2 arguments, the
-1st is a mono .wav file to play, and the
-2nd is a boolean controlling if the frequency spectrum of each time frame should be scaled to 1 for the highest FFT amplitude.
+[fft.c](fft.c) is the main file and requires 1 to 3 arguments, the\
+- 1st is a mono .wav file to play **or** "mic" if you want to use an external microphone\
+- 2nd is the mode 1-4 to for displaying the sound\
+- 3nd is a boolean controlling if the frequency spectrum of each time frame should be scaled to 1 for the highest FFT amplitude.
 
-Run the code using sudo since the GPU_FFT code makes use of the GPU, which requires root permissions. 
+The Modes are in the [led_modes.c](led_modes.c) file
+ * **Mode 1** maps each LED a number of bins and displays a color spectrum and the brightness is the amplitude(has to be optimized).
+ * **Mode 2** maps each LED a number of bins and the color is the amplitude.
+ * **Mode 3** is the same as mode 2 but the base is additional brightness.
+ * **Mode 4** displays a snake that always adds the frequency with the highest amplitude to the beginning.
 
-The file led_modes.c specifies the different modes I implemented so far that determine how to translate the FFT to the LEDs.
+
+Run the code using sudo since the GPU_FFT code makes use of the GPU, which requires root permissions.
+
+An an example run would be:
+```bash
+sudo ./fft.bin example.wav 4
+```
+or
+```bash
+sudo ./fft.bin mic 2
+```
 
 In developing this, I made use of the following information:
 http://www.aholme.co.uk/GPU_FFT/Main.htm
