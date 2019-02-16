@@ -96,7 +96,7 @@ void mode1(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 			
 		}
 		// scale so that the maximum amplitude is 1 and so that the brighness ist calculated
-		max *= amplitude_factor * brightness;
+		max *= amplitude_factor * 80;
 		//write led data into the data files
 		//printf("light freq=%f\n", steps*current_led);
 		(*ledstrip_data)[current_led] = spectral_color(steps*current_led+450, max);
@@ -109,14 +109,14 @@ void mode2(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 	static int scaling, amplitude, overflow;
 	static int current_led, current_bin, bin, num_bins;
 	static float max;
-	if(true){
+	if(logarithmic){
 		scaling = round(log_scale(num_leds, mid_bins));
 		printf("log_scale returned: %f\n", log_scale(num_leds, N/2));
 	}else
 		scaling = round(mid_bins/num_leds); //Calculate how many bins per LED
 	scaling = (int) floor(mid_bins/num_leds);
 	overflow = (int) round(num_leds/(mid_bins-(scaling*num_leds*1.0)));
-	printf("scaling = %doverflow = %d\n",scaling, overflow);
+	//printf("scaling = %doverflow = %d\n",scaling, overflow);
 	bin = 0;
 	for(current_led=0;current_led<num_leds;current_led++)
 	{
@@ -142,10 +142,10 @@ void mode2(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 		max *= amplitude_factor;
 		// with the amplitude values between 0 and 1, we want to realize
 		// visible spectrum color from 450 to 600 nm:
-		amplitude = max*200.0+450;
+		amplitude = max*500.0+400;
 		//write led data into the data file
 		//printf("amplitude: %d, max = %f\n", amplitude, max);
-		(*ledstrip_data)[current_led] = spectral_color(amplitude, brightness);
+		(*ledstrip_data)[current_led] = spectral_color(amplitude, 90);
 		//printf("Returning: r %d, g %d, b %d\n", (*ledstrip_data)[current_led].r,(*ledstrip_data)[current_led].g,(*ledstrip_data)[current_led].b);
 		//printf(" max for led %d: %f (freq = %f)\n",current_led,max,amplitude);
 	}
@@ -167,16 +167,16 @@ void mode3(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 	overflow = (int) round(num_leds/(mid_bins-(scaling*num_leds*1.0)));
 	//printf("scaling = %d overflow = %d\n",scaling, overflow);
 	bin = 0;
+	max = 0;
 	for (current_bin=1;current_bin<low_bins;current_bin++)
 	{
-		max = 0;
+		
 		//printf("For Bass: %d bins current bin: %d of %d bins\n", scaling + (current_led % overflow), current_bin ,bin);
 		if (Data[bin] > max)
 			max = Data[bin];
 		
 		
 	}
-	//printf("bass:%f\n", max);
 	//set brightness by * multipling with the low_bins max
 	brightness = round(max * 100);
 	//printf("bass:%f brightnees:%d bass_max:%d\n", max, brightness, bass_max);
@@ -203,54 +203,47 @@ void mode3(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 		max *= amplitude_factor;
 		// with the amplitude values between 0 and 1, we want to realize
 		// visible spectrum color from 450 to 600 nm:
-		amplitude = max*200.0+450;
+		amplitude = max*500.0+400;
 		//write led data into the data file
 		(*ledstrip_data)[current_led] = spectral_color(amplitude, brightness);
-		
 		//printf(" max for led %d: %f (freq = %f)\n",current_led,max,amplitude);
 	}
 	
 }
-
-
-/*
-// How many fft bins do we have?  HalfN
-// How many leds do we have? num_leds
-// Therefore, how many fft bins need to be averaged for each led?
-if(LOGARITHMIC)
-lin_bins = (N/2)/num_leds
-log_scaling = 1.17455;
-//freq_scaling = pow((N/16.0), (1.0/num_leds));
-//printf("freq_scaling: %f\n", freq_scaling);
-num_bins = (int) (round((N/2)/num_leds));
-//base = num_leds root of num_bins
-// im loop
-int bin = 0;
-//low for how many freq are used for the base, and high how many are used for the upper part
-int low, high, brightness;
-low = 100;
-high = 3000;
-brightness = 99;
-int low_bins, mid_bins, high_bins;
-//(rate/(N/2)) = how many freq are in one bin
-//get how many bin are in the low part
-for(i = 0; i<(N/2); i++)
-if((rate/(N/2)*i>=low)
-   low_bins = i;
-   //get how many bin are in the hight part
-   for(i = (rate/N)*(N/2); i>0; i--)
-   if((rate/(N/2))*i<=high)
-   high_bins =(N/2)-i;
-   
-   //Calculate mid bins
-   mid_bins = (N/2) - low_bins - high_bins;
-   
-   //this code has to get it's own funktion
-   for(current_led=0;current_led<num_leds;current_led++)
-   {
-	   
-	   
-	   //printf(" max for led %d: %f (freq = %f)\n",current_led,max,amplitude);
-   }
-   
-*/
+//Displays a snake that changes it's color according to the max frequencie
+void mode4(unsigned long N, float * Data, int low_bins, int high_bins, int brightness, float amplitude_factor, bool logarithmic, led_data (*ledstrip_data)[]){
+	//printf("Using LED Mode 3\n");
+	//cut of highs and low bins bc they are used for brightness
+	int mid_bins =((N/2) - high_bins)/2;
+	printf("midbins = %d",  mid_bins);
+	static int color;
+	static int current_led, current_bin;
+	static int max;
+	max = 0;
+	brightness=50;
+	
+	for (current_bin=0;current_bin<mid_bins;current_bin++){
+		if (Data[current_bin] > Data[max])
+			max = current_bin;
+	}
+	
+	//in max whe have the bin with the maximum amplitude
+	//we now want to map the number of bins into a number from 0-1
+	//with the max value between 0 and 1, we want to realize
+	//visible spectrum color from 450 to 650 nm:
+	if(max > 0.1)
+		color = round((max * (1.0/(mid_bins))) * 200.0+450);
+	else
+		color = 400;
+	printf("Max bin = %d Color=%d\n",max,  color);
+	
+	//copy the data from the previus time to the next led
+	for(current_led=num_leds-1;current_led>0;current_led--){
+		(*ledstrip_data)[current_led] = (*ledstrip_data)[current_led-1];
+		//printf("For Led %d: r%d g%d b%d\n", current_led, (*ledstrip_data)[current_led].r, (*ledstrip_data)[current_led].g ,(*ledstrip_data)[current_led].b);
+	}
+	//write the new value to the first led
+	(*ledstrip_data)[0]= spectral_color(color, brightness);
+	//printf("For Led %d: r%d g%d b%d\n", 0, (*ledstrip_data)[0].r, (*ledstrip_data)[0].g ,(*ledstrip_data)[0].b);
+	
+}
