@@ -4,9 +4,9 @@ This Code controlls WS2812B LEDs using the SPI port of the Raspberry Pi by calcu
 The code I wrote makes use of the GPU_FFT library (http://www.aholme.co.uk/GPU_FFT/Main.htm) and 
 code to steer the WS2812b LEDs (https://github.com/penfold42/stuff/blob/master/ws2812_spi.c).
 
-[fft.c](fft.c) is the main file and requires 1 to 3 arguments, the\
-- 1st is a mono .wav file to play **or** "mic" if you want to use an external microphone\
-- 2nd is the mode 1-4 to for displaying the sound\
+[fft.c](fft.c) is the main file and requires 1 to 3 arguments, the
+- 1st is a mono .wav file to play **or** "mic" if you want to use an external microphone
+- 2nd is the mode 1-4 to for displaying the sound
 - 3nd is a boolean controlling if the frequency spectrum of each time frame should be scaled to 1 for the highest FFT amplitude.
 
 The Modes are in the [led_modes.c](led_modes.c) file
@@ -18,7 +18,7 @@ The Modes are in the [led_modes.c](led_modes.c) file
 
 Run the code using sudo since the GPU_FFT code makes use of the GPU, which requires root permissions.
 
-An an example run would be:
+An example call would be:
 ```bash
 sudo ./fft.bin example.wav 4
 ```
