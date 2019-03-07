@@ -19,8 +19,8 @@
 #include <sndfile.h>
 
 //GPU_FFT librarys
-#include "mailbox.h"
-#include "gpu_fft.h"
+#include "/opt/vc/src/hello_pi/hello_fft/mailbox.h"
+#include "/opt/vc/src/hello_pi/hello_fft/gpu_fft.h"
 
 #include "spi_led.h"
 #include "led_modes.h"
