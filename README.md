@@ -26,6 +26,9 @@ or
 ```bash
 sudo ./fft.bin mic 2
 ```
+The [Langfassung.pdf](Langfassung.pdf) is the Document I wrote for the Jugend Forscht Contest.
+It is in German but goes a bit deeper into how and why I've built this Project.
+
 
 In developing this, I made use of the following information:
 http://www.aholme.co.uk/GPU_FFT/Main.htm
