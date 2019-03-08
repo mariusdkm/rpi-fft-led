@@ -235,9 +235,9 @@ int main(int argc, char *argv[]) {
 	int low, high, brightness;
 	low = 200;
 	//high = 2530*4;
-	high = 1500;
+	high = 2000;
 	//high = 800;
-	brightness = 70;
+	brightness = 100;
 	float freq_per_bin= audio_device.rate * 1.0/N;
 	
 	int low_bins, high_bins;
@@ -382,13 +382,13 @@ int main(int argc, char *argv[]) {
 		}
 		//Output to see timing
 		/*
-		printf("Audio wait=%d, Audio read=%d, FFT=%d, FFT-Output read=%d, LED calculation=%d, LED write=%d\n", t[1]-t[0],t[2]-t[1],t[3]-t[2],t[4]-t[3],t[5]-t[4], t[6]-t[5]);
-		printf("TOTAL=%d\n",t[6]-t[0]);
-		for(i = 0; i < num_leds; i++)
-			printf("For LED %d wrote r=%d g=%d b=%d\n",i, ledstrip_data[i].r, ledstrip_data[i].g,ledstrip_data[i].b);
+		 printf("Audio wait=%d, Audio read=%d, FFT=%d, FFT-Output read=%d, LED calculation=%d, LED write=%d\n", t[1]-t[0],t[2]-t[1],t[3]-t[2],t[4]-t[3],t[5]-t[4], t[6]-t[5]);
+		 printf("TOTAL=%d\n",t[6]-t[0]);
+		 for(i = 0; i < num_leds; i++)
+		 printf("For LED %d wrote r=%d g=%d b=%d\n",i, ledstrip_data[i].r, ledstrip_data[i].g,ledstrip_data[i].b);
 		 */
 	}
-//Close everything
-gpu_fft_release(fft);
-return close_spi_led(fd);
+	//Close everything
+	gpu_fft_release(fft);
+	return close_spi_led(fd);
 }
