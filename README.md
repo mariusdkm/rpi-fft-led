@@ -7,7 +7,7 @@ code to steer the WS2812b LEDs (https://github.com/penfold42/stuff/blob/master/w
 [fft.c](fft.c) is the main file and requires 1 to 3 arguments, the
 - 1st is a mono .wav file to play **or** "mic" if you want to use an external microphone
 - 2nd is the mode 1-4 to for displaying the sound
-- 3nd is a boolean controlling if the frequency spectrum of each time frame should be scaled to 1 for the highest FFT amplitude.
+- 3nd is optional. If set to "log" displays Bins logarythmically on LED-Strip. If set as something else the frequency spectrum of each time frame should be scaled to 1 for the highest FFT amplitude.
 
 The Modes are in the [led_modes.c](led_modes.c) file
  * **Mode 1** maps each LED a number of bins and displays a color spectrum and the brightness is the amplitude(has to be optimized).
