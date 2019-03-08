@@ -15,7 +15,7 @@
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 // number of physical leds in the strip
-#define num_leds 28
+#define num_leds 180
 
 
 // declare the struct with the three colors
