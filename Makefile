@@ -19,7 +19,7 @@ C1D = $(C) fft.c spi_led.c led_modes.c
 
 H = /opt/vc/src/hello_pi/hello_fft/gpu_fft.h /opt/vc/src/hello_pi/hello_fft/mailbox.h spi_led.h led_modes.h
 
-F = -lrt -lm -ldl -lsndfile -lasound -lwiringPi -pthread
+F = -lrt -lm -ldl -lsndfile -lasound -pthread
 
 
 fft.bin:	$(S) $(C1D) $(H)
