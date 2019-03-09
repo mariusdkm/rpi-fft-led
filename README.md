@@ -14,6 +14,7 @@ The Modes are in the [led_modes.c](led_modes.c) file
  * **Mode 2** maps each LED a number of bins and the color is the amplitude.
  * **Mode 3** is the same as mode 2 but the base is additional brightness.
  * **Mode 4** displays a snake that always adds the frequency with the highest amplitude to the beginning.
+ * **Mode 5** displays the current volume using the number of LEDs. The color is represented by the most domiante frequency
 
 
 Run the code using sudo since the GPU_FFT code makes use of the GPU, which requires root permissions.
