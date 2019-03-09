@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
 		rc = snd_pcm_open(&audio_device.handle, "hw:1,0", SND_PCM_STREAM_CAPTURE, 0);
 	else
 	/* Open PCM device for playback. */
-		rc = snd_pcm_open(&audio_device.handle, "hw:0,1", SND_PCM_STREAM_PLAYBACK, 0);
+		rc = snd_pcm_open(&audio_device.handle, "hw:0,0", SND_PCM_STREAM_PLAYBACK, 0);
 	
 	if (rc < 0) {
 		fprintf(stderr,
@@ -235,9 +235,9 @@ int main(int argc, char *argv[]) {
 	int low, high, brightness;
 	low = 200;
 	//high = 2530*4;
-	high = 2000;
+	high = 1300;
 	//high = 800;
-	brightness = 100;
+	brightness = 50;
 	float freq_per_bin= audio_device.rate * 1.0/N;
 	
 	int low_bins, high_bins;
@@ -273,7 +273,7 @@ int main(int argc, char *argv[]) {
 	//Array-Struct with all the LED-Modes
 	typedef void (*led_mode)(unsigned long N, float * Data, int low_bins, int high_bins, int brightness, float amplitude_factor, bool logarithmic, led_data (*ledstrip_data)[]);
 	
-	led_mode led_modes[4] = {&mode1, &mode2, &mode3, &mode4};
+	led_mode led_modes[5] = {&mode1, &mode2, &mode3, &mode4, &mode5};
 	
 	
 	ret = gpu_fft_prepare(mb, NLOG2, GPU_FFT_FWD, jobs, &fft);
@@ -309,12 +309,14 @@ int main(int argc, char *argv[]) {
 		{
 			usleep(1);
 		}
-		
+		max_amplitude = 0;
 		t[1] = Microseconds();
 		for(i=0;i<N;i++){
 			base[i].im = 0.0;
 			if(mic){
 				base[i].re = buffer[i]/32768.0;
+				if(mode == 4 && max_amplitude < base[i].re)
+					max_amplitude = base[i].re;
 			}else{
 				base[i].re = buf[i+e*N]/32768.0;
 				//Buffer for the playing the sound

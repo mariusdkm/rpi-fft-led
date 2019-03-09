@@ -107,11 +107,11 @@ void mode1(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 		}
 		
 		//Filtering unheareble parts out
-		if(max < 0.05)
+		if(max < 0.02)
 			max = 0.00001;
 		
 		// scale so that the maximum amplitude is 1 and so that the brighness is calculated
-		max *= 150 * amplitude_factor;
+		max *= 200 * amplitude_factor;
 		
 		//write led data into Struct
 		(*ledstrip_data)[current_led] = spectral_color(steps*current_led+450, max);
@@ -139,10 +139,10 @@ void mode2(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 		{
 			max = 0;
 			/*
-			As value for an led, we use the highest value of one of its FFT frequency bins
-			(in principle, using the average may be better,
-			but if we have many bins that we sum over and that destroys the accuray
-			num_bins represents how many bins are mapped to current_led
+			 As value for an led, we use the highest value of one of its FFT frequency bins
+			 (in principle, using the average may be better,
+			 but if we have many bins that we sum over and that destroys the accuray
+			 num_bins represents how many bins are mapped to current_led
 			 */
 			num_bins = round(pow(scaling_log, current_led));
 			
@@ -155,7 +155,7 @@ void mode2(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 				
 			}
 			//Filtering unheareble parts out
-			if(max < 0.05)
+			if(max < 0.02)
 				max = 0.00001;
 			
 			// opmization feature
@@ -179,11 +179,11 @@ void mode2(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 		for(current_led=0;current_led<num_leds;current_led++)
 		{
 			/*
-			As value for an led, we use the highest value of one of its FFT frequency bins
-			(in principle, using the average may be better,
-			but if we have many bins that we sum over and that destroys the accuray)
-			the  current_led % overflow adds the missing bins by using the modulus operator
-			*/
+			 As value for an led, we use the highest value of one of its FFT frequency bins
+			 (in principle, using the average may be better,
+			 but if we have many bins that we sum over and that destroys the accuray)
+			 the  current_led % overflow adds the missing bins by using the modulus operator
+			 */
 			if((current_led % overflow) == 0)
 				num_bins = scaling + 1;
 			else
@@ -203,7 +203,7 @@ void mode2(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 				
 			}
 			//Filtering unheareble parts out
-			if(max < 0.05)
+			if(max < 0.02)
 				max = 0.00001;
 			
 			// opmization feature
@@ -244,11 +244,9 @@ void mode3(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 	
 	for (current_bin=1;current_bin<low_bins;current_bin++)
 	{
-		
 		//printf("For Bass: %d bins current bin: %d of %d bins\n", scaling + (current_led % overflow), current_bin ,bin);
 		max += Data[bin];
-		
-		
+		bin++;
 	}
 	//set brightness by * multipling max with 200 => the Bass adds extra brightness
 	brightness = round(max * 200);
@@ -282,7 +280,7 @@ void mode3(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 			
 		}
 		//Filtering unheareble parts out
-		if(max < 0.05)
+		if(max < 0.02)
 			max = 0.00001;
 		
 		// opmization feature
@@ -293,7 +291,6 @@ void mode3(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 		// But the Output between 400-450 is very dark but that is good
 		//because we don't want to see low amplitudes
 		amplitude = max*300.0+400;
-		
 		//write led data into struct
 		(*ledstrip_data)[current_led] = spectral_color(amplitude, brightness);
 		//printf("Returning: r %d, g %d, b %d\n", (*ledstrip_data)[current_led].r,(*ledstrip_data)[current_led].g,(*ledstrip_data)[current_led].b)
@@ -312,17 +309,16 @@ void mode4(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 	
 	//reset
 	max = 0;
-	bin = 0;
+	bin = low_bins;
 	
-//	for (current_bin=0;current_bin<low_bins;current_bin++)
-//	{
-//		//printf("For Bass: %d bins current bin: %d of %d bins\n", scaling + (current_led % overflow), current_bin ,bin);
-//		max += Data[bin];
-//	}
-//	//set brightness by * multipling max with 200 => the Bass adds extra brightness
-//	brightness = round(max * 200);
-//	printf("brightness:%d max:%f\n", brightness, max);
-	
+	//	for (current_bin=0;current_bin<low_bins;current_bin++)
+	//	{
+	//		//printf("For Bass: %d bins current bin: %d of %d bins\n", scaling + (current_led % overflow), current_bin ,bin);
+	//		max += Data[bin];
+	//	}
+	//	//set brightness by * multipling max with 200 => the Bass adds extra brightness
+	//	brightness = round(max * 200);
+	//	printf("brightness:%d max:%f\n", brightness, max);
 	for (current_bin=0;current_bin<mid_bins;current_bin++)
 	{
 		if (Data[bin] > Data[max])
@@ -340,10 +336,67 @@ void mode4(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 	//But only if the amplitude hearable
 	if(max > 0.1){
 		color = round((max * (1.0/(mid_bins))) * 200.0+450);
-		(*ledstrip_data)[0]= spectral_color(color, brightness);
+		(*ledstrip_data)[0]= spectral_color(color, 30);
 	}else {
 		(*ledstrip_data)[0].r = 0;
 		(*ledstrip_data)[0].g = 0;
 		(*ledstrip_data)[0].b = 0;
 	}
+}
+//Displays a snake that changes it's color according to the max frequencie
+void mode5(unsigned long N, float * Data, int low_bins, int high_bins, int brightness, float amplitude_factor, bool logarithmic, led_data (*ledstrip_data)[]){
+	//printf("Using LED Mode 3\n");
+	//cut of highs and low bins bc they are used for brightness
+	int mid_bins =(N/2) - high_bins - low_bins;
+	//printf("midbins = %d",  mid_bins);
+	static int color;
+	static int current_led, current_bin, bin;
+	static int num_leds_amp, max;
+	static float max_amp, bass_max;
+	max = 0;
+	bass_max = 0;
+	bin = 0;
+	for (current_bin=0;current_bin<low_bins;current_bin++)
+	{
+		//printf("For Bass: %d bins current bin: %d bass_max=%f\n", low_bins, bin , bass_max);
+		bass_max += Data[bin];
+		bin++;
+	}
+	//set brightness by * multipling max with 200 => the Bass adds extra brightness
+	
+	brightness = round(bass_max * 200);;
+	
+	for (current_bin=0;current_bin<mid_bins;current_bin++){
+		if (Data[bin] > Data[max])
+			max = current_bin;
+		bin++;
+	}
+	
+	//in max whe have the bin with the maximum amplitude
+	//we now want to map the number of bins into a number from 0-1
+	//with the max value between 0 and 1, we want to realize
+	//visible spectrum color from 450 to 650 nm:
+	if(max > 0.1)
+		color = round((max * (1.0/(mid_bins))) * 250.0+400);
+	else
+		color = 400;
+	
+	max_amp = 1/amplitude_factor;
+	//printf("Max bin = %d Color=%d\n",max,  color);
+	
+	//copy the data from the previus time to the next led
+	num_leds_amp = round(num_leds * max_amp);
+	//printf("max_amp=%f numleds=%d brightness=%d\n",max_amp, num_leds_amp, brightness);
+	for(current_led=0;current_led<num_leds;current_led++){
+		if (num_leds_amp > current_led) {
+			(*ledstrip_data)[current_led]= spectral_color(color, brightness);
+		}else{
+			(*ledstrip_data)[current_led].r = 0;
+			(*ledstrip_data)[current_led].g = 0;
+			(*ledstrip_data)[current_led].b = 0;
+		}
+		
+	}
+	
+	
 }
