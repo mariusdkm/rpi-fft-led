@@ -1,8 +1,5 @@
 //
 //  led_modes.h
-//  
-//
-//  Created by Marius Dario Cora on 05.01.19.
 //
 
 #ifndef led_modes_h

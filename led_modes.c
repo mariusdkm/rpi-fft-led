@@ -36,6 +36,7 @@ static float log_scale(int width, int range){
 	return log;
 }
 
+
 // auxiliary function mapping spectral frequency to rgb values, based on
 // https://stackoverflow.com/questions/3407942/rgb-values-of-visible-spectrum
 static struct led_data spectral_color(double l, int brightness) { // returns RGB = 0-1; l = 400-700 nm wavelenght
@@ -65,6 +66,7 @@ static struct led_data spectral_color(double l, int brightness) { // returns RGB
 	//printf("Returning: r %d, g %d, b %d\n", rgb_data.r,rgb_data.g,rgb_data.b);
 	return rgb_data;
 }
+
 
 //In this mode sets a rainbow along the ledstrip and assing bins to leds the brightness is the amplitude only the highs are cut off
 void mode1(unsigned long N, float * Data, int low_bins, int high_bins, int brightness, float amplitude_factor, bool logarithmic, led_data (*ledstrip_data)[]){
@@ -117,6 +119,7 @@ void mode1(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 		(*ledstrip_data)[current_led] = spectral_color(steps*current_led+450, max);
 	}
 }
+
 
 void mode2(unsigned long N, float * Data, int low_bins, int high_bins, int brightness, float amplitude_factor, bool logarithmic, led_data (*ledstrip_data)[]){
 	//cut of highs
@@ -222,6 +225,7 @@ void mode2(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 	}
 }
 
+
 void mode3(unsigned long N, float * Data, int low_bins, int high_bins, int brightness, float amplitude_factor, bool logarithmic, led_data (*ledstrip_data)[]){
 	//rintf("Using LED Mode 3\n");
 	//cut of highs and low bins bc lows they are used for brightness
@@ -297,7 +301,9 @@ void mode3(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 	}
 	
 }
-//Displays a snake that changes it's color according to the max frequencie
+
+
+//Displays a snake that changes it's color according to the max frequency
 void mode4(unsigned long N, float * Data, int low_bins, int high_bins, int brightness, float amplitude_factor, bool logarithmic, led_data (*ledstrip_data)[]){
 	//printf("Using LED Mode 3\n");
 	//cut of highs and low bins bc they are used for brightness
@@ -343,19 +349,22 @@ void mode4(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 		(*ledstrip_data)[0].b = 0;
 	}
 }
-//Displays a snake that changes it's color according to the max frequencie
+
+
+//Displays volume as the number of LEDs and the color is the most dominant Amplitude
 void mode5(unsigned long N, float * Data, int low_bins, int high_bins, int brightness, float amplitude_factor, bool logarithmic, led_data (*ledstrip_data)[]){
-	//printf("Using LED Mode 3\n");
 	//cut of highs and low bins bc they are used for brightness
 	int mid_bins =(N/2) - high_bins - low_bins;
-	//printf("midbins = %d",  mid_bins);
 	static int color;
 	static int current_led, current_bin, bin;
 	static int num_leds_amp, max;
 	static float max_amp, bass_max;
+	
 	max = 0;
 	bass_max = 0;
 	bin = 0;
+	
+	//caluclate brightness using the bass
 	for (current_bin=0;current_bin<low_bins;current_bin++)
 	{
 		//printf("For Bass: %d bins current bin: %d bass_max=%f\n", low_bins, bin , bass_max);
@@ -363,9 +372,9 @@ void mode5(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 		bin++;
 	}
 	//set brightness by * multipling max with 200 => the Bass adds extra brightness
-	
 	brightness = round(bass_max * 200);;
 	
+	//get the bin with highest amplitude
 	for (current_bin=0;current_bin<mid_bins;current_bin++){
 		if (Data[bin] > Data[max])
 			max = current_bin;
@@ -373,7 +382,7 @@ void mode5(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 	}
 	
 	//in max whe have the bin with the maximum amplitude
-	//we now want to map the number of bins into a number from 0-1
+	//we now want to calculate the color
 	//with the max value between 0 and 1, we want to realize
 	//visible spectrum color from 450 to 650 nm:
 	if(max > 0.1)
@@ -381,10 +390,10 @@ void mode5(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 	else
 		color = 400;
 	
+	//get the maximum amplitude
 	max_amp = 1/amplitude_factor;
-	//printf("Max bin = %d Color=%d\n",max,  color);
 	
-	//copy the data from the previus time to the next led
+	//calculate how many LEDs are used to display
 	num_leds_amp = round(num_leds * max_amp);
 	//printf("max_amp=%f numleds=%d brightness=%d\n",max_amp, num_leds_amp, brightness);
 	for(current_led=0;current_led<num_leds;current_led++){
@@ -395,8 +404,5 @@ void mode5(unsigned long N, float * Data, int low_bins, int high_bins, int brigh
 			(*ledstrip_data)[current_led].g = 0;
 			(*ledstrip_data)[current_led].b = 0;
 		}
-		
 	}
-	
-	
 }
