@@ -17,7 +17,23 @@ The Modes are in the [led_modes.c](led_modes.c) file
  * **Mode 5** displays the current volume using the number of LEDs. The color is represented by the most domiante frequency
 
 
-Run the code using sudo since the GPU_FFT code makes use of the GPU, which requires root permissions.
+## Install and build
+```bash
+#Update system
+sudo apt-get update && sudo apt-get upgrade
+
+#Install missing librarys
+sudo apt-get install libsndfile1 libsndfile1-dev
+
+#Clone Project
+git clone https://github.com/mariusdkm/rpi-fft-led
+
+cd rpi-fft-led
+
+#Build Project
+make fft.bin
+
+```
 
 An example call would be:
 ```bash
@@ -27,6 +43,10 @@ or
 ```bash
 sudo ./fft.bin mic 2
 ```
+
+Run the code using sudo since the GPU_FFT code makes use of the GPU, which requires root permissions.
+
+
 The [Langfassung.pdf](Langfassung.pdf) is the Document I wrote for the Jugend Forscht Contest.
 It is in German but goes a bit deeper into how and why I've built this Project.
 
