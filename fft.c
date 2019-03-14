@@ -72,7 +72,7 @@ void *readData(void *audio_device){
 
 int main(int argc, char *argv[]) {
 	//How many samples are used has to be 2^X 2^11=2048 works the best.
-	int NLOG2 = 11;
+	int NLOG2 = 12;
 	unsigned long N = 1 << NLOG2;
 	
 	//loop is used to control how often the analyzing is going
@@ -101,11 +101,15 @@ int main(int argc, char *argv[]) {
 			logarithmic = true;
 			printf("logarithmic enabled\n");
 		} else {
-			optimize = true;
-			printf("optimizing enabled\n");
+			if(mode != 4){
+				optimize = true;
+				printf("optimizing enabled\n");
+			} else {
+				printf("optimizing not supported in Mode 5\n");
+			}
 		}
 	}
-	printf("mode %d enabled\n",mode);
+	printf("mode %d enabled\n",mode+1);
 	
 	//Open the WAV file.
 	if (argc < 2 || argc > 5)
@@ -154,7 +158,7 @@ int main(int argc, char *argv[]) {
 	snd_pcm_hw_params_set_rate_near(audio_device.handle, audio_device.params, &audio_device.rate, &audio_device.dir);
 	
 	/* Set period size to N frames. */
-	audio_device.frames = N;
+	audio_device.frames = N/2;
 	snd_pcm_hw_params_set_period_size_near(audio_device.handle, audio_device.params, &audio_device.frames, &audio_device.dir);
 	
 	/* Write the parameters to the driver */
@@ -217,9 +221,9 @@ int main(int argc, char *argv[]) {
 	int fd, i;
 	
 	//FFT Variables
-	float * OutData;
+	float * OutData, * OldData;
 	OutData = malloc(N/2 * sizeof(float));
-	
+	OldData = malloc(N/2 * sizeof(float));
 	int jobs=1, mb = mbox_open();
 	
 	struct GPU_FFT_COMPLEX * base;
@@ -311,12 +315,17 @@ int main(int argc, char *argv[]) {
 		}
 		max_amplitude = 0;
 		t[1] = Microseconds();
-		for(i=0;i<N;i++){
+		
+		
+		for(i=0;i<N/2;i++){
 			base[i].im = 0.0;
+			base[i+N/2].im = 0.0;
 			if(mic){
-				base[i].re = buffer[i]/32768.0;
-				if(mode == 4 && max_amplitude < base[i].re)
-					max_amplitude = base[i].re;
+				base[i].re = OldData[i];
+				base[i+N/2].re = buffer[i]/32768.0;
+				OldData[i] = base[i+N/2].re;
+				if(mode == 4 && max_amplitude < base[i+N/2].re)
+					max_amplitude = base[i+N/2].re;
 			}else{
 				base[i].re = buf[i+e*N]/32768.0;
 				//Buffer for the playing the sound
@@ -324,8 +333,8 @@ int main(int argc, char *argv[]) {
 			}
 			
 		}
-		fulldata = false;
 		
+		fulldata = false;
 		t[2] = Microseconds();
 		
 		if(!mic){
