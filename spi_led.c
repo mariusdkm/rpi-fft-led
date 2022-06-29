@@ -38,7 +38,7 @@
  *
  */
 
-#import "spi_led.h"
+#include "spi_led.h"
 
 // forward declare led_data to be a struct
 

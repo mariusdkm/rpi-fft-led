@@ -23,7 +23,7 @@ F = -lrt -lm -ldl -lsndfile -lasound -pthread
 
 
 fft.bin:	$(S) $(C1D) $(H)
-	gcc -o fft.bin $(F) $(C1D)
+	gcc -o fft.bin $(C1D) $(F)
 
 clean:
 	rm -f *.bin
